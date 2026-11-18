@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FutbolVerse - La Experiencia Definitiva de Fútbol</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            neonGreen: '#00ff66',
+                            neonBlue: '#00d8ff',
+                            neonPurple: '#7000ff',
+                            gold: '#ffd700',
+                            darkBg: '#0b0f19',
+                            cardBg: '#131b2e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Teko', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            overflow-x: hidden;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .neon-glow-green { box-shadow: 0 0 20px rgba(0, 255, 102, 0.4); }
+        .neon-glow-blue { box-shadow: 0 0 20px rgba(0, 216, 255, 0.4); }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #00ff66 0%, #00d8ff 50%, #7000ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-3d {
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        .card-3d:hover {
+            transform: translateY(-8px) rotateX(2deg) rotateY(-1deg);
+            box-shadow: 0 15px 30px rgba(0, 216, 255, 0.2);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; filter: blur(20px); }
+            50% { opacity: 0.9; filter: blur(30px); }
+        }
+
+        .bg-glow-sphere {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseGlow 6s infinite ease-in-out;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .bar-anim { animation: bounceHeight 1.2s infinite ease-in-out alternate; }
+        .bar-anim:nth-child(2) { animation-delay: 0.2s; }
+        .bar-anim:nth-child(3) { animation-delay: 0.4s; }
+        .bar-anim:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes bounceHeight {
+            0% { height: 20%; }
+            100% { height: 100%; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #00ff66; border-radius: 4px; }
+        canvas { touch-action: none; }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between selection:bg-brand-neonGreen selection:text-black">
+
+    <div class="bg-glow-sphere w-96 h-96 bg-brand-neonPurple top-[-50px] left-[-50px]"></div>
+    <div class="bg-glow-sphere w-96 h-96 bg-brand-neonBlue bottom-[-50px] right-[-50px]"></div>
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-brand-darkBg/80 border-b border-white/10 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('trofeos')">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-neonGreen to-brand-neonBlue flex items-center justify-center text-black font-black text-xl shadow-lg">
+                    <i class="fa-solid font-bold fa-futbol"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-3xl font-bold tracking-wider leading-none gradient-text">FUTBOL<span class="text-white">VERSE</span></h1>
+                    <p class="text-xs text-gray-400 font-sans tracking-widest uppercase">EA Sports Vibes Edition</p>
+                </div>
+            </div>
+
+            <!-- Menú Nav Pestañas -->
+            <nav class="flex flex-wrap justify-center gap-1.5 bg-brand-cardBg/80 p-1.5 rounded-2xl border border-white/10">
+                <button onclick="switchTab('trofeos')" id="nav-trofeos" class="nav-btn active flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-black bg-brand-neonGreen shadow-md">
+                    <i class="fa-solid fa-trophy"></i> Trofeos
+                </button>
+                <button onclick="switchTab('jugadores')" id="nav-jugadores" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-gray-300 hover:text-white hover:bg-white/10">
+                    <i class="fa-solid fa-users"></i> Estrellas
+                </button>
+                <button onclick="switchTab('tienda')" id="nav-tienda" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-gray-300 hover:text-white hover:bg-white/10">
+                    <i class="fa-solid fa-store"></i> Tienda Oficial
+                </button>
+                <button onclick="switchTab('games')" id="nav-games" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-gray-300 hover:text-white hover:bg-white/10">
+                    <i class="fa-solid fa-gamepad"></i> MiniJuegos
+                </button>
+                <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-gray-300 hover:text-white hover:bg-white/10">
+                    <i class="fa-solid fa-brain"></i> Quiz Trivia
+                </button>
+            </nav>
+
+            <!-- FIFA Soundtrack Music Player -->
+            <div class="flex items-center gap-3 bg-brand-cardBg px-3 py-2 rounded-xl border border-white/10">
+                <button id="play-pause-btn" onclick="toggleAudio()" class="w-8 h-8 rounded-full bg-brand-neonBlue text-black flex items-center justify-center hover:scale-105 transition">
+                    <i id="play-icon" class="fa-solid fa-play text-xs"></i>
+                </button>
+                <div class="hidden sm:block">
+                    <div class="text-xs font-bold text-white leading-tight">FIFA Soundtrack</div>
+                    <div class="text-[10px] text-brand-neonGreen">Love Me Again (Remix)</div>
+                </div>
+                <div class="flex items-center gap-0.5 h-4 w-6">
+                    <div class="w-1 bg-brand-neonGreen rounded-full bar-anim"></div>
+                    <div class="w-1 bg-brand-neonBlue rounded-full bar-anim"></div>
+                    <div class="w-1 bg-brand-neonPurple rounded-full bar-anim"></div>
+                    <div class="w-1 bg-brand-gold rounded-full bar-anim"></div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
+
+        <!-- ==================== TAB 1: TROFEOS ==================== -->
+        <section id="tab-trofeos" class="tab-content active">
+            <div class="text-center mb-10">
+                <h2 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-wide gradient-text">Trofeos Míticos del Fútbol</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-2 text-sm md:text-base">Explora las coronas más codiciadas del planeta fútbol. Haz clic en "Más Información" para conocer todos los detalles históricos.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <!-- Champions League -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 relative overflow-hidden group flex flex-col justify-between">
+                    <div>
+                        <div class="h-52 flex items-center justify-center mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=500&q=80" alt="UEFA Champions League" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,216,255,0.4)] group-hover:scale-105 transition duration-500 rounded-xl">
+                            <span class="absolute top-2 right-2 bg-brand-neonBlue/20 text-brand-neonBlue text-xs px-2.5 py-1 rounded-full border border-brand-neonBlue/40 font-bold">UEFA</span>
+                        </div>
+                        <h3 class="font-display text-3xl font-bold text-white">UEFA Champions League</h3>
+                        <p class="text-xs text-brand-neonBlue font-semibold uppercase tracking-wider mb-2">La Orejona • Europa</p>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4">El torneo de clubes más prestigioso del mundo. Creado en 1955, reúne a los mejores equipos europeos.</p>
+                    </div>
+                    <button onclick="openTrophyModal('Champions League', 'La UEFA Champions League (antiguamente Copa de Campeones de Europa) nació en 1955 gracias a una iniciativa del diario L\'Équipe. Es el torneo de fútbol a nivel de clubes más visto y competitivo del planeta. El trofeo actual, apodado \\'La Orejona\\' por el diseño de sus asas, pesa 7.5 kilos y está hecho de plata esterlina. El Real Madrid es el máximo dominador histórico con 15 títulos continentales.', 'Real Madrid (15)', 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=500&q=80')" class="w-full py-2.5 rounded-xl bg-brand-neonBlue/20 hover:bg-brand-neonBlue/30 text-brand-neonBlue font-bold text-xs border border-brand-neonBlue/40 transition">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Más Información
+                    </button>
+                </div>
+
+                <!-- Copa Mundial FIFA -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 relative overflow-hidden group flex flex-col justify-between">
+                    <div>
+                        <div class="h-52 flex items-center justify-center mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=500&q=80" alt="Copa Mundial FIFA" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(255,215,0,0.4)] group-hover:scale-105 transition duration-500 rounded-xl">
+                            <span class="absolute top-2 right-2 bg-brand-gold/20 text-brand-gold text-xs px-2.5 py-1 rounded-full border border-brand-gold/40 font-bold">FIFA Global</span>
+                        </div>
+                        <h3 class="font-display text-3xl font-bold text-white">Copa Mundial de la FIFA</h3>
+                        <p class="text-xs text-brand-gold font-semibold uppercase tracking-wider mb-2">El Santo Grial • Selecciones</p>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4">Diseñado en oro macizo de 18 quilates, representa la cumbre suprema del deporte rey cada 4 años.</p>
+                    </div>
+                    <button onclick="openTrophyModal('Copa Mundial de la FIFA', 'La Copa Mundial de la FIFA es el torneo internacional de fútbol más importante del mundo. El trofeo actual fue esculpido por el artista italiano Silvio Gazzaniga en 1971 y representa a dos figuras humanas sosteniendo el planeta Tierra. Mide 36.8 cm de altura, pesa más de 6 kilogramos de oro puro de 18 quilates y en su base se graban los nombres de cada campeón mundial desde 1974. Brasil encabeza el palmarés con 5 títulos.', 'Brasil (5)', 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=500&q=80')" class="w-full py-2.5 rounded-xl bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold font-bold text-xs border border-brand-gold/40 transition">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Más Información
+                    </button>
+                </div>
+
+                <!-- UEFA Europa League -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 relative overflow-hidden group flex flex-col justify-between">
+                    <div>
+                        <div class="h-52 flex items-center justify-center mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=500&q=80" alt="Europa League" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(249,115,22,0.4)] group-hover:scale-105 transition duration-500 rounded-xl">
+                            <span class="absolute top-2 right-2 bg-orange-500/20 text-orange-400 text-xs px-2.5 py-1 rounded-full border border-orange-500/40 font-bold">UEFA</span>
+                        </div>
+                        <h3 class="font-display text-3xl font-bold text-white">UEFA Europa League</h3>
+                        <p class="text-xs text-orange-400 font-semibold uppercase tracking-wider mb-2">Copa de la UEFA • Batalla</p>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4">El segundo torneo continental de clubes en Europa, famoso por su alta intensidad y competitividad.</p>
+                    </div>
+                    <button onclick="openTrophyModal('UEFA Europa League', 'La UEFA Europa League, antes denominada Copa de la UEFA, es un torneo continental anual de clubes organizado por la UEFA desde 1971. Es reconocido por su dureza competitiva, partidos vibrantes de eliminatoria directa y por otorgar al campeón un boleto directo a la siguiente Champions League. El Sevilla FC es el rey absoluto de esta competición con múltiples títulos levantados.', 'Sevilla FC (7)', 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=500&q=80')" class="w-full py-2.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold text-xs border border-orange-500/40 transition">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Más Información
+                    </button>
+                </div>
+
+                <!-- Mundial de Clubes -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 relative overflow-hidden group flex flex-col justify-between">
+                    <div>
+                        <div class="h-52 flex items-center justify-center mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=500&q=80" alt="Mundial de Clubes" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(112,0,255,0.4)] group-hover:scale-105 transition duration-500 rounded-xl">
+                            <span class="absolute top-2 right-2 bg-brand-neonPurple/20 text-brand-neonPurple text-xs px-2.5 py-1 rounded-full border border-brand-neonPurple/40 font-bold">Mundial Clubes</span>
+                        </div>
+                        <h3 class="font-display text-3xl font-bold text-white">Mundial de Clubes FIFA</h3>
+                        <p class="text-xs text-brand-neonPurple font-semibold uppercase tracking-wider mb-2">Rey del Mundo de Clubes</p>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4">Enfrenta a los campeones de cada confederación para coronar al mejor club del planeta.</p>
+                    </div>
+                    <button onclick="openTrophyModal('Mundial de Clubes FIFA', 'La Copa Mundial de Clubes de la FIFA reúne a los equipos campeones de las seis confederaciones continentales: UEFA, Conmebol, Concacaf, CAF, AFC y OFC. Es el torneo que define de manera oficial al mejor club del planeta tierra en un formato apasionante de eliminación directa.', 'Real Madrid (5)', 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=500&q=80')" class="w-full py-2.5 rounded-xl bg-brand-neonPurple/20 hover:bg-brand-neonPurple/30 text-brand-neonPurple font-bold text-xs border border-brand-neonPurple/40 transition">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Más Información
+                    </button>
+                </div>
+
+                <!-- Premier League -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 relative overflow-hidden group flex flex-col justify-between">
+                    <div>
+                        <div class="h-52 flex items-center justify-center mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1560272564-6695205502ce?auto=format&fit=crop&w=500&q=80" alt="Premier League" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(147,51,234,0.4)] group-hover:scale-105 transition duration-500 rounded-xl">
+                            <span class="absolute top-2 right-2 bg-purple-600/20 text-purple-300 text-xs px-2.5 py-1 rounded-full border border-purple-600/40 font-bold">Inglaterra</span>
+                        </div>
+                        <h3 class="font-display text-3xl font-bold text-white">Premier League</h3>
+                        <p class="text-xs text-purple-400 font-semibold uppercase tracking-wider mb-2">El León Dorado • Liga de Ligas</p>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4">El trofeo de liga nacional más visto y competido del mundo, coronado con el icónico león inglés.</p>
+                    </div>
+                    <button onclick="openTrophyModal('Premier League', 'La Premier League es la máxima categoría del sistema de ligas de fútbol de Inglaterra. Es considerada por muchos la liga nacional más competitiva, física y mediática del planeta. El trofeo se destaca por sus dos asas de plata y una base de malaquita verde, coronado por la figura de un león dorado con corona.', 'Manchester United (13 Títulos de PL)', 'https://images.unsplash.com/photo-1560272564-6695205502ce?auto=format&fit=crop&w=500&q=80')" class="w-full py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold text-xs border border-purple-600/40 transition">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Más Información
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: JUGADORES FAMOSOS ==================== -->
+        <section id="tab-jugadores" class="tab-content">
+            <div class="text-center mb-10">
+                <h2 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-wide gradient-text">Estrellas del Planeta</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-2 text-sm md:text-base">Leyendas vivas y prodigios que están marcando la historia dorada del balompié internacional.</p>
+            </div>
+
+            <div id="players-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Se renderiza con JS -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: TIENDA OFICIAL (NUEVA SECCIÓN) ==================== -->
+        <section id="tab-tienda" class="tab-content">
+            <div class="text-center mb-10">
+                <h2 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-wide gradient-text">Tienda Oficial FutbolVerse</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-2 text-sm md:text-base">Equípate con indumentaria profesional, balones oficiales del mundial y calzado de alto rendimiento.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- Item 1: Camisa de Juego -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 rounded-2xl overflow-hidden mb-4 bg-black/40 flex items-center justify-center p-2">
+                            <img src="https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcQi6o-gVFjt2hd7yEbSegjibkuMQWzL_4I2UMf-UrkDqGgqNZTzxXhX1LLxXY8ImijXAKe1eBvM7-MjJMI" alt="Camisa de Juego Argentina" class="w-full h-full object-cover rounded-xl filter drop-shadow-md">
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-brand-neonBlue/20 text-brand-neonBlue font-bold">Edición Campeón</span>
+                        <h3 class="font-display text-2xl font-bold text-white mt-1">Camisa de Juego Argentina</h3>
+                        <p class="text-xs text-gray-300 mt-1 mb-4">Camiseta oficial albiceleste con detalles dorados y tecnología antitranspirante de alto rendimiento.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                        <span class="font-display text-2xl font-bold text-brand-neonGreen">$89.99 USD</span>
+                        <button onclick="alert('¡Producto agregado al carrito con éxito! 🛒')" class="px-3.5 py-2 rounded-xl bg-brand-neonGreen text-black font-bold text-xs hover:scale-105 transition">
+                            <i class="fa-solid fa-cart-shopping mr-1"></i> Comprar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Item 2: Balón de Entrenamiento -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 rounded-2xl overflow-hidden mb-4 bg-black/40 flex items-center justify-center p-2">
+                            <img src="https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcQw7h7TzpyuCbhgMYCevAsQuo9_nnhxzaiCe3V_UtjplwjjiPtSSDnotadYvuzXat-utoUD-GlyI2Hltxk" alt="Balón Mundial FIFA" class="w-full h-full object-cover rounded-xl filter drop-shadow-md">
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-brand-gold/20 text-brand-gold font-bold">Oficial FIFA</span>
+                        <h3 class="font-display text-2xl font-bold text-white mt-1">Balón del Mundial FIFA</h3>
+                        <p class="text-xs text-gray-300 mt-1 mb-4">Balón oficial de máxima aerodinámica y precisión milimétrica para partidos y entrenamientos intensos.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                        <span class="font-display text-2xl font-bold text-brand-neonGreen">$149.99 USD</span>
+                        <button onclick="alert('¡Producto agregado al carrito con éxito! 🛒')" class="px-3.5 py-2 rounded-xl bg-brand-neonGreen text-black font-bold text-xs hover:scale-105 transition">
+                            <i class="fa-solid fa-cart-shopping mr-1"></i> Comprar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Item 3: Botas de Fútbol / Guayos -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 rounded-2xl overflow-hidden mb-4 bg-black/40 flex items-center justify-center p-2">
+                            <img src="https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcRChsZT_lieRqcPR688yJ0I9yr_zhQZJXLw9aKuVqVQQHj1B8mznHReCpuKsqgluuyaFXKlir0yhp0rogA" alt="Botas de Fútbol Mercurial" class="w-full h-full object-cover rounded-xl filter drop-shadow-md">
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-brand-neonPurple/20 text-brand-neonPurple font-bold">Pro Speed</span>
+                        <h3 class="font-display text-2xl font-bold text-white mt-1">Botas de Fútbol Mercurial</h3>
+                        <p class="text-xs text-gray-300 mt-1 mb-4">Guayos profesionales ultraligeros diseñados para máxima velocidad, arrancadas y toque superior.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                        <span class="font-display text-2xl font-bold text-brand-neonGreen">$219.99 USD</span>
+                        <button onclick="alert('¡Producto agregado al carrito con éxito! 🛒')" class="px-3.5 py-2 rounded-xl bg-brand-neonGreen text-black font-bold text-xs hover:scale-105 transition">
+                            <i class="fa-solid fa-cart-shopping mr-1"></i> Comprar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Item 4: Camiseta de Entrenamiento -->
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 rounded-2xl overflow-hidden mb-4 bg-black/40 flex items-center justify-center p-2">
+                            <img src="https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=500&q=80" alt="Camiseta de Entrenamiento" class="w-full h-full object-cover rounded-xl filter drop-shadow-md">
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-bold">Training Line</span>
+                        <h3 class="font-display text-2xl font-bold text-white mt-1">Jersey de Entrenamiento</h3>
+                        <p class="text-xs text-gray-300 mt-1 mb-4">Prenda transpirable de alta comodidad para sesiones de preparación física y entrenamientos tácticos.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                        <span class="font-display text-2xl font-bold text-brand-neonGreen">$59.99 USD</span>
+                        <button onclick="alert('¡Producto agregado al carrito con éxito! 🛒')" class="px-3.5 py-2 rounded-xl bg-brand-neonGreen text-black font-bold text-xs hover:scale-105 transition">
+                            <i class="fa-solid fa-cart-shopping mr-1"></i> Comprar
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: MINI JUEGOS ==================== -->
+        <section id="tab-games" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-wide gradient-text">Estadio de Minijuegos</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-2 text-sm md:text-base">Demuestra tu puntería y precisión en el terreno de juego interactivo.</p>
+            </div>
+
+            <div class="flex justify-center gap-4 mb-8">
+                <button onclick="selectGame('penaltis')" id="btn-game-penaltis" class="px-6 py-3 rounded-2xl font-bold text-sm bg-brand-neonGreen text-black shadow-lg transition duration-300">
+                    <i class="fa-solid fa-bullseye mr-2"></i> Tanda de Penaltis
+                </button>
+                <button onclick="selectGame('tiroslibres')" id="btn-game-tiros" class="px-6 py-3 rounded-2xl font-bold text-sm bg-brand-cardBg text-gray-300 hover:text-white border border-white/10 transition duration-300">
+                    <i class="fa-solid fa-futbol mr-2"></i> Tiros Libres con Barrera
+                </button>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-brand-cardBg rounded-3xl p-4 border border-brand-neonGreen/30 shadow-2xl relative">
+                <div class="flex justify-between items-center bg-black/50 px-6 py-3 rounded-2xl mb-4 border border-white/10">
+                    <div class="text-center">
+                        <span class="text-xs text-gray-400 block uppercase font-mono">Goles</span>
+                        <span id="game-score" class="text-2xl font-black text-brand-neonGreen font-display">0</span>
+                    </div>
+                    <div id="game-instructions" class="text-center text-xs md:text-sm text-gray-300">
+                        Haz clic/tap dentro de la portería para disparar
+                    </div>
+                    <div class="text-center">
+                        <span class="text-xs text-gray-400 block uppercase font-mono">Intentos</span>
+                        <span id="game-attempts" class="text-2xl font-black text-brand-neonBlue font-display">0</span>
+                    </div>
+                </div>
+
+                <div class="relative w-full aspect-[4/3] bg-gradient-to-b from-sky-900 via-emerald-950 to-emerald-900 rounded-2xl overflow-hidden shadow-inner border border-white/10 flex items-center justify-center">
+                    <canvas id="footballCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                </div>
+
+                <div class="mt-4 flex justify-between items-center">
+                    <button onclick="resetCurrentGame()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-gray-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Reiniciar Marcador
+                    </button>
+                    <span id="game-feedback" class="text-sm font-bold text-brand-gold animate-pulse"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: QUIZ TRIVIA ==================== -->
+        <section id="tab-quiz" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-wide gradient-text">Quiz Futbolero Master</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-2 text-sm md:text-base">Ponte a prueba con preguntas por nivel y demuestra tu sabiduría táctica e histórica.</p>
+            </div>
+
+            <div id="quiz-level-select" class="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                <button onclick="startQuiz('facil')" class="bg-brand-cardBg hover:bg-emerald-900/40 p-6 rounded-3xl border border-brand-neonGreen/40 flex flex-col items-center gap-3 transition transform hover:-translate-y-2">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-neonGreen/20 flex items-center justify-center text-brand-neonGreen text-3xl">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <h3 class="font-display text-3xl font-bold text-white">Fácil</h3>
+                    <p class="text-xs text-gray-400 text-center">Para aficionados casuales. Preguntas sobre estrellas y torneos populares.</p>
+                    <span class="text-xs font-mono text-brand-neonGreen">10 Preguntas</span>
+                </button>
+
+                <button onclick="startQuiz('medio')" class="bg-brand-cardBg hover:bg-cyan-900/40 p-6 rounded-3xl border border-brand-neonBlue/40 flex flex-col items-center gap-3 transition transform hover:-translate-y-2">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-neonBlue/20 flex items-center justify-center text-brand-neonBlue text-3xl">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <h3 class="font-display text-3xl font-bold text-white">Medio</h3>
+                    <p class="text-xs text-gray-400 text-center">Para verdaderos fanáticos. Datos sobre récords y campeonatos.</p>
+                    <span class="text-xs font-mono text-brand-neonBlue">10 Preguntas</span>
+                </button>
+
+                <button onclick="startQuiz('dificil')" class="bg-brand-cardBg hover:bg-purple-900/40 p-6 rounded-3xl border border-brand-neonPurple/40 flex flex-col items-center gap-3 transition transform hover:-translate-y-2">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-neonPurple/20 flex items-center justify-center text-brand-neonPurple text-3xl">
+                        <i class="fa-solid fa-skull"></i>
+                    </div>
+                    <h3 class="font-display text-3xl font-bold text-white">Difícil</h3>
+                    <p class="text-xs text-gray-400 text-center">Nivel Leyenda. Solo apto para enciclopedias del fútbol mundial.</p>
+                    <span class="text-xs font-mono text-brand-neonPurple">10 Preguntas</span>
+                </button>
+            </div>
+
+            <div id="quiz-active-box" class="hidden max-w-2xl mx-auto bg-brand-cardBg rounded-3xl p-6 md:p-8 border border-white/10 shadow-2xl relative">
+                <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                    <div>
+                        <span id="quiz-diff-badge" class="text-xs px-3 py-1 rounded-full bg-brand-neonGreen/20 text-brand-neonGreen font-bold uppercase">Fácil</span>
+                        <h4 id="quiz-counter" class="text-sm text-gray-400 mt-1 font-mono">Pregunta 1 de 10</h4>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-brand-gold"></i>
+                        <span id="quiz-timer" class="font-display text-3xl font-bold text-brand-gold">15</span>
+                    </div>
+                </div>
+
+                <div class="w-full bg-gray-800 h-2 rounded-full mb-6 overflow-hidden">
+                    <div id="quiz-progress-bar" class="bg-gradient-to-r from-brand-neonGreen to-brand-neonBlue h-full w-10 transition-all duration-300"></div>
+                </div>
+
+                <h3 id="quiz-question-text" class="text-xl md:text-2xl font-bold text-white mb-6 leading-snug">Pregunta...</h3>
+
+                <div id="quiz-options-container" class="grid grid-cols-1 gap-3 mb-6"></div>
+
+                <div class="flex justify-between items-center text-xs text-gray-400 border-t border-white/10 pt-4 font-mono">
+                    <span>Puntuación: <strong id="quiz-score-num" class="text-brand-neonGreen text-sm">0</strong> pts</span>
+                    <button onclick="abortQuiz()" class="hover:text-red-400 underline">Salir del Quiz</button>
+                </div>
+            </div>
+
+            <div id="quiz-results-box" class="hidden max-w-md mx-auto bg-brand-cardBg rounded-3xl p-8 border border-brand-gold/40 text-center shadow-2xl">
+                <div class="w-20 h-20 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center text-4xl mx-auto mb-4 border border-brand-gold/50">
+                    <i id="quiz-medal-icon" class="fa-solid fa-medal"></i>
+                </div>
+                <h3 class="font-display text-4xl font-bold text-white mb-1">¡Quiz Finalizado!</h3>
+                <p id="quiz-result-rank" class="text-brand-gold font-bold uppercase text-sm mb-4">Experto Futbolero</p>
+                
+                <div class="bg-black/40 p-4 rounded-2xl mb-6 font-mono text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Aciertos:</span>
+                        <span id="res-correct" class="text-brand-neonGreen font-bold">0 / 10</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Puntos Totales:</span>
+                        <span id="res-points" class="text-brand-neonBlue font-bold">0 pts</span>
+                    </div>
+                </div>
+
+                <button onclick="resetQuizMenu()" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-neonGreen to-brand-neonBlue text-black font-bold hover:opacity-90 transition">
+                    Jugar Otro Nivel
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL DE INFORMACIÓN EXTENDIDA DE TROFEOS -->
+    <div id="trophyModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-brand-cardBg max-w-lg w-full rounded-3xl p-6 border border-brand-neonBlue/40 relative shadow-2xl animate-fade-in">
+            <button onclick="closeTrophyModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-trophy-img-box" class="h-44 flex items-center justify-center mb-4">
+                <img id="modal-trophy-img" src="" alt="Trofeo" class="h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,216,255,0.4)]">
+            </div>
+            <h3 id="modal-trophy-title" class="font-display text-3xl font-bold text-white mb-1">Título del Trofeo</h3>
+            <p id="modal-trophy-record" class="text-xs text-brand-neonGreen font-mono font-bold mb-3">Máximo Ganador: -</p>
+            <p id="modal-trophy-desc" class="text-gray-300 text-sm leading-relaxed mb-6">Información detallada...</p>
+            <button onclick="closeTrophyModal()" class="w-full py-3 rounded-xl bg-brand-neonBlue text-black font-bold text-sm hover:opacity-90 transition">
+                Cerrar Ventana
+            </button>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 border-t border-white/10 bg-brand-darkBg py-6 px-4 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 FutbolVerse Interactive. Diseñado para la máxima pasión futbolística.</p>
+            <div class="flex items-center gap-4 text-gray-400">
+                <span class="hover:text-brand-neonGreen cursor-pointer"><i class="fa-brands fa-x-twitter text-base"></i></span>
+                <span class="hover:text-brand-neonGreen cursor-pointer"><i class="fa-brands fa-instagram text-base"></i></span>
+                <span class="hover:text-brand-neonGreen cursor-pointer"><i class="fa-brands fa-youtube text-base"></i></span>
+            </div>
+        </div>
+    </footer>
+
+    <audio id="fifa-audio" loop preload="none">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a83a0f.mp3?filename=energetic-indie-rock-111239.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const audioEl = document.getElementById('fifa-audio');
+        const playBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        let isPlaying = false;
+
+        function toggleAudio() {
+            if (isPlaying) {
+                audioEl.pause();
+                playIcon.className = "fa-solid fa-play text-xs";
+                isPlaying = false;
+            } else {
+                audioEl.play().then(() => {
+                    playIcon.className = "fa-solid fa-pause text-xs";
+                    isPlaying = true;
+                }).catch(err => console.log("Audio blocked"));
+            }
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'kick') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'goal') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.setValueAtTime(1200, now + 0.1);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'save') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.2);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-gray-300 hover:text-white hover:bg-white/10";
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+
+            if (activeTab && activeBtn) {
+                activeTab.classList.add('active');
+                activeBtn.className = "nav-btn active flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 text-black bg-brand-neonGreen shadow-md";
+            }
+
+            if(tabId === 'games') {
+                initCanvasGame();
+            }
+        }
+
+        /* Modal para más información de trofeos */
+        function openTrophyModal(title, desc, record, img) {
+            document.getElementById('modal-trophy-title').innerText = title;
+            document.getElementById('modal-trophy-desc').innerText = desc;
+            document.getElementById('modal-trophy-record').innerText = `🏆 Récord: ${record}`;
+            document.getElementById('modal-trophy-img').src = img;
+            document.getElementById('trophyModal').classList.remove('hidden');
+        }
+
+        function closeTrophyModal() {
+            document.getElementById('trophyModal').classList.add('hidden');
+        }
+
+        const playersData = [
+            {
+                name: "Lionel Messi", country: "Argentina 🇦🇷", club: "Inter Miami CF", pos: "Delantero / MP",
+                photo: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80",
+                bio: "Nacido en Rosario, Santa Fe. Considerado por muchos como el mejor futbolista de todos los tiempos.",
+                titles: "Mundial 2022, 8 Balones de Oro, 4 Champions League, 10 La Ligas.",
+                stats: { pac: 80, sho: 89, pas: 94, dri: 95 }
+            },
+            {
+                name: "Cristiano Ronaldo", country: "Portugal 🇵🇹", club: "Al-Nassr FC", pos: "Delantero Centro",
+                photo: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+                bio: "Nacido en Funchal, Madeira. Máximo goleador histórico del fútbol profesional.",
+                titles: "5 Balones de Oro, 5 Champions League, Eurocopa 2016.",
+                stats: { pac: 82, sho: 92, pas: 78, dri: 84 }
+            },
+            {
+                name: "Kylian Mbappé", country: "Francia 🇫🇷", club: "Real Madrid CF", pos: "Delantero Extremo",
+                photo: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
+                bio: "Velocidad explosiva y definición letal. Campeón del mundo a los 19 años.",
+                titles: "Mundial 2018, Bota de Oro Mundial 2022, 6 Ligue 1.",
+                stats: { pac: 97, sho: 89, pas: 80, dri: 92 }
+            },
+            {
+                name: "Vinícius Jr.", country: "Brasil 🇧🇷", club: "Real Madrid CF", pos: "Extremo Izquierdo",
+                photo: "https://images.unsplash.com/photo-1560272564-6695205502ce?auto=format&fit=crop&w=600&q=80",
+                bio: "Surgido del Flamengo. Referente absoluto del desequilibrio mundial en el Real Madrid.",
+                titles: "2 Champions League, 3 La Liga, Mejor Jugador UEFA.",
+                stats: { pac: 95, sho: 84, pas: 81, dri: 94 }
+            },
+            {
+                name: "Lamine Yamal", country: "España 🇪🇸", club: "FC Barcelona", pos: "Extremo Derecho",
+                photo: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=600&q=80",
+                bio: "Joven prodigio criado en La Masia. Rompió récords de precocidad en Europa.",
+                titles: "Eurocopa 2024, Trofeo Kopa 2024, La Liga.",
+                stats: { pac: 88, sho: 79, pas: 85, dri: 91 }
+            },
+            {
+                name: "Harry Kane", country: "Inglaterra 🏴🏽", club: "FC Bayern München", pos: "Delantero Centro",
+                photo: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80",
+                bio: "Ariete implacable, máximo referente ofensivo y con gran visión de juego.",
+                titles: "Bota de Oro Europea, Bota de Oro Mundial 2018.",
+                stats: { pac: 72, sho: 93, pas: 83, dri: 81 }
+            }
+        ];
+
+        function renderPlayers() {
+            const container = document.getElementById('players-container');
+            container.innerHTML = playersData.map(p => `
+                <div class="card-3d bg-brand-cardBg rounded-3xl p-6 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs px-3 py-1 rounded-full bg-white/10 text-brand-neonGreen font-mono font-bold">${p.country}</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-brand-neonBlue/20 text-brand-neonBlue font-mono font-bold">${p.pos}</span>
+                        </div>
+                        <div class="h-44 rounded-2xl overflow-hidden mb-4 relative">
+                            <img src="${p.photo}" alt="${p.name}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-cardBg via-transparent to-transparent"></div>
+                            <span class="absolute bottom-2 left-3 font-display text-2xl font-bold text-white drop-shadow">${p.name}</span>
+                        </div>
+                        <p class="text-xs text-brand-gold font-bold mb-1"><i class="fa-solid fa-shirt"></i> ${p.club}</p>
+                        <p class="text-gray-300 text-xs leading-relaxed mb-4">${p.bio}</p>
+                        <div class="bg-black/30 p-3 rounded-xl mb-4 border border-white/5">
+                            <p class="text-[11px] font-semibold text-brand-neonGreen">🏆 Títulos Principales:</p>
+                            <p class="text-[11px] text-gray-300 leading-tight">${p.titles}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono pt-2 border-t border-white/10">
+                        <div>
+                            <div class="flex justify-between text-gray-400"><span>RITMO</span><span>${p.stats.pac}</span></div>
+                            <div class="w-full bg-gray-800 h-1 rounded"><div class="bg-brand-neonGreen h-1 rounded" style="width: ${p.stats.pac}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-gray-400"><span>TIRO</span><span>${p.stats.sho}</span></div>
+                            <div class="w-full bg-gray-800 h-1 rounded"><div class="bg-brand-neonBlue h-1 rounded" style="width: ${p.stats.sho}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-gray-400"><span>PASE</span><span>${p.stats.pas}</span></div>
+                            <div class="w-full bg-gray-800 h-1 rounded"><div class="bg-brand-gold h-1 rounded" style="width: ${p.stats.pas}%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-gray-400"><span>REGATE</span><span>${p.stats.dri}</span></div>
+                            <div class="w-full bg-gray-800 h-1 rounded"><div class="bg-brand-neonPurple h-1 rounded" style="width: ${p.stats.dri}%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* Canvas Juego */
+        let canvas, ctx;
+        let currentGame = 'penaltis';
+        let gameScore = 0;
+        let gameAttempts = 0;
+        let isBallInMotion = false;
+        let ball = { x: 0, y: 0, radius: 12, targetX: 0, targetY: 0 };
+        let keeper = { x: 0, y: 0, width: 40, height: 60, targetX: 0 };
+        let wallDefenders = [];
+
+        function initCanvasGame() {
+            canvas = document.getElementById('footballCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            resetBallAndKeeper();
+            canvas.onmousedown = handleShootClick;
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                handleShootClick({ clientX: touch.clientX, clientY: touch.clientY });
+            };
+            requestAnimationFrame(gameLoop);
+        }
+
+        function selectGame(mode) {
+            currentGame = mode;
+            gameScore = 0;
+            gameAttempts = 0;
+            document.getElementById('game-score').innerText = '0';
+            document.getElementById('game-attempts').innerText = '0';
+            document.getElementById('game-feedback').innerText = '';
+
+            const btnPen = document.getElementById('btn-game-penaltis');
+            const btnTiros = document.getElementById('btn-game-tiros');
+            const instr = document.getElementById('game-instructions');
+
+            if(mode === 'penaltis') {
+                btnPen.className = "px-6 py-3 rounded-2xl font-bold text-sm bg-brand-neonGreen text-black shadow-lg transition duration-300";
+                btnTiros.className = "px-6 py-3 rounded-2xl font-bold text-sm bg-brand-cardBg text-gray-300 hover:text-white border border-white/10 transition duration-300";
+                instr.innerText = "Haz clic en la portería para disparar tu penalti";
+            } else {
+                btnTiros.className = "px-6 py-3 rounded-2xl font-bold text-sm bg-brand-neonBlue text-black shadow-lg transition duration-300";
+                btnPen.className = "px-6 py-3 rounded-2xl font-bold text-sm bg-brand-cardBg text-gray-300 hover:text-white border border-white/10 transition duration-300";
+                instr.innerText = "Supera la barrera de defensores con tu tiro libre";
+            }
+            resetBallAndKeeper();
+        }
+
+        function resetBallAndKeeper() {
+            if(!canvas) return;
+            isBallInMotion = false;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 40;
+            ball.targetX = ball.x; ball.targetY = ball.y;
+            keeper.x = canvas.width / 2;
+            keeper.y = canvas.height * 0.32;
+            keeper.targetX = keeper.x;
+
+            wallDefenders = [];
+            if(currentGame === 'tiroslibres') {
+                const wallCount = 4;
+                const startX = canvas.width / 2 - 50;
+                for(let i=0; i<wallCount; i++) {
+                    wallDefenders.push({ x: startX + (i * 25), y: canvas.height * 0.55, width: 18, height: 45 });
+                }
+            }
+        }
+
+        function handleShootClick(e) {
+            if(isBallInMotion) return;
+            const rect = canvas.getBoundingClientRect();
+            ball.targetX = e.clientX - rect.left;
+            ball.targetY = e.clientY - rect.top;
+            isBallInMotion = true;
+            gameAttempts++;
+            document.getElementById('game-attempts').innerText = gameAttempts;
+            playSound('kick');
+
+            const goalLeft = canvas.width * 0.25;
+            const goalRight = canvas.width * 0.75;
+            keeper.targetX = goalLeft + Math.random() * (goalRight - goalLeft);
+        }
+
+        function gameLoop() {
+            if(!ctx || !canvas) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPitchAndGoal();
+
+            if(currentGame === 'tiroslibres') {
+                ctx.fillStyle = '#f97316';
+                wallDefenders.forEach(def => {
+                    ctx.beginPath();
+                    ctx.roundRect(def.x - def.width/2, def.y - def.height, def.width, def.height, 5);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(def.x, def.y - def.height - 8, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            ctx.fillStyle = '#00d8ff';
+            ctx.beginPath();
+            ctx.roundRect(keeper.x - keeper.width/2, keeper.y - keeper.height, keeper.width, keeper.height, 8);
+            ctx.fill();
+
+            if(isBallInMotion) {
+                keeper.x += (keeper.targetX - keeper.x) * 0.12;
+                ball.x += (ball.targetX - ball.x) * 0.15;
+                ball.y += (ball.targetY - ball.y) * 0.15;
+
+                if(Math.hypot(ball.targetX - ball.x, ball.targetY - ball.y) < 5) {
+                    checkGoalOutcome();
+                }
+            }
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawPitchAndGoal() {
+            const goalX = canvas.width * 0.22;
+            const goalW = canvas.width * 0.56;
+            const goalY = canvas.height * 0.18;
+            const goalH = canvas.height * 0.18;
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            for(let i=goalX; i<=goalX+goalW; i+=12) {
+                ctx.beginPath(); ctx.moveTo(i, goalY); ctx.lineTo(i, goalY + goalH); ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(goalX, goalY, goalW, goalH);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height - 40, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function checkGoalOutcome() {
+            isBallInMotion = false;
+            const goalX = canvas.width * 0.22;
+            const goalW = canvas.width * 0.56;
+            const goalY = canvas.height * 0.18;
+            const goalH = canvas.height * 0.18;
+            const feedback = document.getElementById('game-feedback');
+
+            const hitKeeper = Math.abs(ball.x - keeper.x) < keeper.width/1.5 && Math.abs(ball.y - (keeper.y - keeper.height/2)) < keeper.height/1.5;
+            let hitWall = false;
+            if(currentGame === 'tiroslibres') {
+                wallDefenders.forEach(def => {
+                    if(Math.abs(ball.x - def.x) < def.width && Math.abs(ball.y - def.y) < def.height) hitWall = true;
+                });
+            }
+
+            const insideGoal = (ball.x > goalX && ball.x < goalX + goalW && ball.y > goalY && ball.y < goalY + goalH);
+
+            if (insideGoal && !hitKeeper && !hitWall) {
+                gameScore++;
+                document.getElementById('game-score').innerText = gameScore;
+                feedback.innerText = "¡GOOOOOOLAZO! ⚽🔥";
+                feedback.className = "text-sm font-bold text-brand-neonGreen animate-bounce";
+                playSound('goal');
+            } else if (hitKeeper) {
+                feedback.innerText = "¡PARADÓN DEL PORTERO! 🧤";
+                feedback.className = "text-sm font-bold text-brand-neonBlue";
+                playSound('save');
+            } else if (hitWall) {
+                feedback.innerText = "¡REBOTÓ EN LA BARRERA! 🛡️";
+                feedback.className = "text-sm font-bold text-orange-400";
+                playSound('save');
+            } else {
+                feedback.innerText = "¡FUERA! ❌";
+                feedback.className = "text-sm font-bold text-red-400";
+            }
+            setTimeout(resetBallAndKeeper, 1800);
+        }
+
+        function resetCurrentGame() {
+            gameScore = 0; gameAttempts = 0;
+            document.getElementById('game-score').innerText = '0';
+            document.getElementById('game-attempts').innerText = '0';
+            document.getElementById('game-feedback').innerText = '';
+            resetBallAndKeeper();
+        }
+
+        /* Quiz sistema */
+        const quizQuestions = {
+            facil: [
+                { q: "¿Qué país ganó el Mundial de la FIFA en Qatar 2022?", a: ["Francia", "Argentina", "Brasil", "Croacia"], c: 1 },
+                { q: "¿Cuántos Balones de Oro ha ganado Lionel Messi?", a: ["6", "7", "8", "9"], c: 2 },
+                { q: "¿En qué club jugó la mayor parte de su carrera Cristiano Ronaldo?", a: ["Manchester United", "Juventus", "Real Madrid", "Sporting"], c: 2 },
+                { q: "¿Cada cuántos años se celebra el Mundial de Fútbol?", a: ["2 años", "3 años", "4 años", "5 años"], c: 2 },
+                { q: "¿Qué equipo de fútbol es conocido como los 'Red Devils'?", a: ["Liverpool", "AC Milan", "Manchester United", "Arsenal"], c: 2 },
+                { q: "¿Cuántos jugadores tiene un equipo en el terreno de juego?", a: ["10", "11", "12", "9"], c: 1 },
+                { q: "¿Qué país tiene más Copas del Mundo ganadas?", a: ["Alemania", "Italia", "Argentina", "Brasil"], c: 3 },
+                { q: "¿Cuál es la duración reglamentaria de un partido de fútbol?", a: ["80 min", "90 min", "100 min", "120 min"], c: 1 },
+                { q: "¿Cómo se llama el estadio del FC Barcelona?", a: ["Santiago Bernabéu", "Camp Nou", "Metropolitano", "Anfield"], c: 1 },
+                { q: "¿Quién es el joven astro que destacó con España en 2024?", a: ["Gavi", "Pedri", "Lamine Yamal", "Nico Williams"], c: 2 }
+            ],
+            medio: [
+                { q: "¿Qué selección ganó la Eurocopa disputada en 2024?", a: ["Inglaterra", "Francia", "España", "Holanda"], c: 2 },
+                { q: "¿Quién es el máximo goleador histórico de la UEFA Champions League?", a: ["Lionel Messi", "Cristiano Ronaldo", "Lewandowski", "Benzema"], c: 1 },
+                { q: "¿En qué año ganó el Leicester City su histórica Premier League?", a: ["2014", "2015", "2016", "2018"], c: 2 },
+                { q: "¿Qué jugador apodado 'El Fenómeno' brilló con Brasil en el Mundial 2002?", a: ["Ronaldinho", "Ronaldo Nazário", "Rivaldo", "Romário"], c: 1 },
+                { q: "¿Cuál de estos clubes ha ganado 15 UEFA Champions League?", a: ["AC Milan", "Bayern Múnich", "Liverpool", "Real Madrid"], c: 3 },
+                { q: "¿Quién dirigía al FC Barcelona en su famoso triplete de 2009?", a: ["Luis Enrique", "Pep Guardiola", "Frank Rijkaard", "Johan Cruyff"], c: 1 },
+                { q: "¿En qué país se jugó el Mundial de 1970 donde Pelé se coronó tricampeón?", a: ["Brasil", "Chile", "México", "Inglaterra"], c: 2 },
+                { q: "¿Quién anotó el gol de la victoria para Alemania en la final del Mundial 2014?", a: ["Thomas Müller", "Mario Götze", "Miroslav Klose", "Toni Kroos"], c: 1 },
+                { q: "¿Qué entrenador se autodenominó 'The Special One'?", a: ["Jürgen Klopp", "Carlo Ancelotti", "José Mourinho", "Pep Guardiola"], c: 2 },
+                { q: "¿Qué trofeo se entrega al máximo goleador de las ligas europeas?", a: ["Bota de Oro", "Balón de Oro", "Pichichi", "The Best"], c: 0 }
+            ],
+            dificil: [
+                { q: "¿Quién es el máximo goleador histórico de los Mundiales de la FIFA?", a: ["Ronaldo Nazário", "Miroslav Klose", "Pelé", "Just Fontaine"], c: 1 },
+                { q: "¿Qué jugador ostenta el récord de más goles en un año natural (91 goles)?", a: ["Cristiano Ronaldo", "Pelé", "Gerd Müller", "Lionel Messi"], c: 3 },
+                { q: "¿En qué año se fundó la Premier League inglesa en su formato actual?", a: ["1988", "1992", "1995", "2000"], c: 1 },
+                { q: "¿Qué país ganó la primera Copa Mundial de la historia en 1930?", a: ["Argentina", "Brasil", "Uruguay", "Italia"], c: 2 },
+                { q: "¿Qué único guardameta ha ganado el Balón de Oro en la historia?", a: ["Buffon", "Casillas", "Lev Yashin", "Manuel Neuer"], c: 2 },
+                { q: "¿Quién marcó el gol más rápido en la historia de la Champions League (10.12 s)?", a: ["Roy Makaay", "Jonas", "Seedorf", "Alexandre Pato"], c: 0 },
+                { q: "¿Cuál fue el primer club de Cristiano Ronaldo como profesional?", a: ["Manchester United", "Sporting CP", "Nacional", "Porto"], c: 1 },
+                { q: "¿Qué selección ostenta la racha más larga invicta (37 partidos)?", a: ["Brasil", "España", "Argentina", "Italia"], c: 3 },
+                { q: "¿Quién anotó el famoso gol bautizado como 'La Mano de Dios' en 1986?", a: ["Diego Maradona", "Mario Kempes", "Daniel Passarella", "Batistuta"], c: 0 },
+                { q: "¿Qué club ganó la Copa de Europa 3 veces seguidas (1971-1973) con el 'Fútbol Total'?", a: ["Bayern", "AFC Ajax", "Benfica", "Inter"], c: 1 }
+            ]
+        };
+
+        let currentDiff = 'facil';
+        let currentQIndex = 0;
+        let quizScore = 0;
+        let quizCorrectCount = 0;
+        let quizTimer;
+        let timeLeft = 15;
+
+        function startQuiz(diff) {
+            currentDiff = diff; currentQIndex = 0; quizScore = 0; quizCorrectCount = 0;
+            document.getElementById('quiz-level-select').classList.add('hidden');
+            document.getElementById('quiz-results-box').classList.add('hidden');
+            document.getElementById('quiz-active-box').classList.remove('hidden');
+            document.getElementById('quiz-diff-badge').innerText = diff.toUpperCase();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            clearInterval(quizTimer);
+            timeLeft = 15;
+            document.getElementById('quiz-timer').innerText = timeLeft;
+            const questions = quizQuestions[currentDiff];
+            const qData = questions[currentQIndex];
+
+            document.getElementById('quiz-counter').innerText = `Pregunta ${currentQIndex + 1} de ${questions.length}`;
+            document.getElementById('quiz-question-text').innerText = qData.q;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentQIndex + 1) / questions.length) * 100}%`;
+
+            const optionsBox = document.getElementById('quiz-options-container');
+            optionsBox.innerHTML = qData.a.map((opt, idx) => `
+                <button onclick="handleAnswer(${idx})" class="quiz-opt-btn text-left p-4 rounded-xl bg-black/40 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition flex items-center justify-between">
+                    <span>${opt}</span><i class="fa-regular fa-circle text-gray-500"></i>
+                </button>
+            `).join('');
+
+            quizTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('quiz-timer').innerText = timeLeft;
+                if(timeLeft <= 0) { clearInterval(quizTimer); handleAnswer(-1); }
+            }, 1000);
+        }
+
+        function handleAnswer(selectedIdx) {
+            clearInterval(quizTimer);
+            const questions = quizQuestions[currentDiff];
+            const qData = questions[currentQIndex];
+            const buttons = document.querySelectorAll('.quiz-opt-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if(selectedIdx === qData.c) {
+                quizScore += 100 + (timeLeft * 10);
+                quizCorrectCount++;
+                if(buttons[selectedIdx]) buttons[selectedIdx].className = "quiz-opt-btn text-left p-4 rounded-xl bg-emerald-600/40 border border-brand-neonGreen text-brand-neonGreen text-sm font-medium flex items-center justify-between";
+                playSound('goal');
+            } else {
+                if(selectedIdx !== -1 && buttons[
